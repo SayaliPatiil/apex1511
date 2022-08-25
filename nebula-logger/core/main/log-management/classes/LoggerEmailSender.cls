@@ -74,6 +74,44 @@ public without sharing class LoggerEmailSender {
         sendErrorEmail(sobjectType, errorMessages);
     }
 
+    public static void sendLogEmails(List<Log__c> logs) {
+        if (logs == null || logs.isEmpty() == true) {
+            return;
+        }
+
+        List<Messaging.SingleEmailMessage> messages = new List<Messaging.SingleEmailMessage>();
+        for (Log__c log : logs) {
+            User loggingUser = new User(Id = log.LoggedBy__c, ProfileId = log.ProfileId__c);
+            LoggerSettings__c loggingUserSettings = Logger.getUserSettings(loggingUser);
+            if (loggingUserSettings.EmailAlertLoggingLevel__c == null || loggingUserSettings.EmailAlertRecipients__c == null) {
+                continue;
+            }
+
+            LoggingLevel emailAlertLoggingLevel = Logger.getLoggingLevel(loggingUserSettings.EmailAlertLoggingLevel__c);
+            if (log.MaxLogEntryLoggingLevelOrdinal__c >= emailAlertLoggingLevel.ordinal()) {
+                // log.SendSlackNotification__c = true;
+                continue;
+            }
+            Messaging.SingleEmailMessage message = new Messaging.SingleEmailMessage();
+            message.setToAddresses(loggingUserSettings.EmailAlertRecipients__c.split(','));
+            message.setSubject('TODO Subject');
+            message.setHtmlBody('TODO HTML');
+            messages.add(message);
+        }
+        // if (CACHED_APEX_ERROR_RECIPIENTS.isEmpty() == true) {
+        //     if (LoggerParameter.ENABLE_SYSTEM_MESSAGES == true) {
+        //         Logger.info('Logger - no Apex email recipients configured, skipping sending email');
+        //     }
+        //     return;
+        // }
+
+        // Messaging.SingleEmailMessage message = new Messaging.SingleEmailMessage();
+        // message.setToAddresses(CACHED_APEX_ERROR_RECIPIENTS);
+        // message.setSubject(buildSubject(errorMessages));
+        // message.setHtmlBody(buildHtmlBody(sobjectType, errorMessages));
+        // sendEmail(message);
+    }
+
     private static void sendErrorEmail(Schema.SObjectType sobjectType, List<String> errorMessages) {
         if (errorMessages.isEmpty() == true) {
             return;

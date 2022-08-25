@@ -26,7 +26,7 @@ private class Logger_Tests {
     }
 
     @IsTest
-    static void it_should_use_in_memory_default_settings_when_not_configured() {
+    static void it_should_use_in_memory_default_settings_when_not_configured_for_current_user() {
         LoggerSettings__c expectedSettings = (LoggerSettings__c) LoggerSettings__c.SObjectType.newSObject(null, true);
         expectedSettings.SetupOwnerId = UserInfo.getUserId();
 
@@ -35,6 +35,26 @@ private class Logger_Tests {
         List<LoggerSettings__c> existingSettings = [SELECT Id FROM LoggerSettings__c];
         System.assertEquals(0, existingSettings.size(), 'LoggerSettings__c record should not have been saved');
         System.assertEquals(expectedSettings, returnedSettings);
+        System.assertEquals(null, returnedSettings.Id);
+    }
+
+    @IsTest
+    static void it_should_use_in_memory_default_settings_when_not_configured_for_another_user() {
+        User someOtherUser = LoggerMockDataCreator.createUser();
+        someOtherUser.Id = LoggerMockDataCreator.createId(Schema.User.SObjectType);
+        LoggerSettings__c expectedSettings = Logger.getUserSettings(someOtherUser);
+        String someNewFieldValue = 'something different';
+        System.assertEquals(someOtherUser.Id, expectedSettings.SetupOwnerId);
+        System.assertNotEquals(someNewFieldValue, expectedSettings.DefaultLogScenario__c);
+        expectedSettings.DefaultLogScenario__c = someNewFieldValue;
+
+        LoggerSettings__c returnedSettings = Logger.getUserSettings(someOtherUser);
+
+        List<LoggerSettings__c> existingSettings = [SELECT Id FROM LoggerSettings__c];
+        System.assertEquals(0, existingSettings.size(), 'LoggerSettings__c record should not have been saved');
+        System.assertEquals(someOtherUser.Id, returnedSettings.SetupOwnerId);
+        System.assertNotEquals(someNewFieldValue, returnedSettings.DefaultLogScenario__c);
+        // System.assertEquals(JSON.serialize(expectedSettings), JSON.serialize(returnedSettings));
         System.assertEquals(null, returnedSettings.Id);
     }
 

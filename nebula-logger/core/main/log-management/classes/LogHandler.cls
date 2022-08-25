@@ -51,6 +51,13 @@ public without sharing class LogHandler extends LoggerSObjectHandler {
         this.shareLogsWithLoggingUsers();
     }
 
+    protected override void executeAfterUpdate(Map<Id, SObject> triggerNewMap, Map<Id, SObject> triggerOldMap) {
+        this.logs = (List<Log__c>) triggerNewMap.values();
+        this.oldLogsById = (Map<Id, Log__c>) triggerOldMap;
+
+        this.sendEmailAlerts();
+    }
+
     private void setClosedStatusFields() {
         Map<String, LogStatus__mdt> logStatusNameToStatus = loadActiveLogStatuses();
         for (Log__c log : this.logs) {
@@ -203,6 +210,32 @@ public without sharing class LogHandler extends LoggerSObjectHandler {
             logShares.add(logShare);
         }
         LoggerDataStore.getDatabase().insertRecords(logShares, false);
+    }
+
+    private void sendEmailAlerts() {
+        List<Log__c> logsToEmail = new List<Log__c>();
+        for (Log__c log : this.logs) {
+            Log__c oldLog = this.oldLogsById.get(log.Id);
+
+            if (log.MaxLogEntryLoggingLevelOrdinal__c == oldLog.MaxLogEntryLoggingLevelOrdinal__c) {
+                continue;
+            }
+
+            User loggingUser = new User(Id = log.LoggedBy__c, ProfileId = log.ProfileId__c);
+            LoggerSettings__c loggingUserSettings = Logger.getUserSettings(loggingUser);
+            if (loggingUserSettings.EmailAlertLoggingLevel__c == null || loggingUserSettings.EmailAlertRecipients__c == null) {
+                continue;
+            }
+
+            LoggingLevel emailAlertLoggingLevel = Logger.getLoggingLevel(loggingUserSettings.EmailAlertLoggingLevel__c);
+            if (
+                log.MaxLogEntryLoggingLevelOrdinal__c < emailAlertLoggingLevel.ordinal() &&
+                log.MaxLogEntryLoggingLevelOrdinal__c >= emailAlertLoggingLevel.ordinal()
+            ) {
+                logsToEmail.add(log);
+            }
+        }
+        LoggerEmailSender.sendLogEmails(logs);
     }
 
     private static LoggerSettings__c getLoggingUserSettings(Log__c log) {

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>EmailAlertLoggingLevel__c</fullName>
+    <businessStatus>Active</businessStatus>
+    <complianceGroup>CCPA;GDPR;PII</complianceGroup>
+    <externalId>false</externalId>
+    <inlineHelpText>The minimum logging level to trigger an email alert to be sent for any generated logs.</inlineHelpText>
+    <label>Email Alert Logging Level</label>
+    <length>255</length>
+    <required>true</required>
+    <securityClassification>Confidential</securityClassification>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

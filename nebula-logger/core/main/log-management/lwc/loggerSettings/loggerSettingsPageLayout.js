@@ -44,6 +44,16 @@ const PAGE_LAYOUT_CONFIG = {
                 { fieldApiNames: ['DefaultNumberOfDaysToRetainLogs__c', 'DefaultLogPurgeAction__c'], size: 6 },
                 { fieldApiNames: ['DefaultLogScenario__c', 'DefaultLogShareAccessLevel__c', 'DefaultLogOwner__c'], size: 6 }
             ]
+        },
+        {
+            key: 'emailAlertSettings',
+            label: 'Email Alert Settings',
+            showInReadOnlyMode: true,
+            showInEditMode: true,
+            columns: [
+                { fieldApiNames: ['EmailAlertLoggingLevel__c'], size: 6 },
+                { fieldApiNames: ['EmailAlertRecipients__c'], size: 6 }
+            ]
         }
     ]
 };
@@ -58,11 +68,12 @@ const LoggerSettingsPageLayout = class {
     _parsePicklistOptions(apexPicklistOptions) {
         // TODO - long term, this feels like the wrong place for this mapping to live, but it'll live here for now
         const picklistOptions = {
-            LoggingLevel__c: apexPicklistOptions.loggingLevelOptions,
+            EmailAlertLoggingLevel__c: apexPicklistOptions.loggingLevelOptions,
             DefaultLogPurgeAction__c: apexPicklistOptions.purgeActionOptions,
             DefaultPlatformEventStorageLocation__c: apexPicklistOptions.platformEventStorageLocationOptions,
             DefaultSaveMethod__c: apexPicklistOptions.saveMethodOptions,
-            DefaultLogShareAccessLevel__c: apexPicklistOptions.shareAccessLevelOptions
+            DefaultLogShareAccessLevel__c: apexPicklistOptions.shareAccessLevelOptions,
+            LoggingLevel__c: apexPicklistOptions.loggingLevelOptions
         };
 
         return picklistOptions;
